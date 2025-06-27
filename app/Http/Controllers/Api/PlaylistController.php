@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Playlist;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
+use App\Models\Category;
 
 class PlaylistController extends Controller
 {
@@ -41,6 +42,39 @@ class PlaylistController extends Controller
             ], 500);
         }
     }
+
+
+
+    public function getByCategory(int $categoryId): JsonResponse
+    {
+        // Check if the category exists
+        if (!Category::where('id', $categoryId)->exists()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Category not found.',
+            ], 404);
+        }
+
+        try {
+            $playlists = Playlist::with('category')
+                ->where('category_id', $categoryId)
+                ->get();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Playlists retrieved successfully.',
+                'data' => $playlists,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'An error occurred while retrieving playlists.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
 
     public function create(Request $request): JsonResponse
     {

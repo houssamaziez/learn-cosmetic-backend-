@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\CategoryController\CategoryController;
 use App\Http\Controllers\Api\PlaylistController;
 use App\Http\Controllers\Api\CourseController;
+use App\Http\Controllers\Api\SearchController;
 
 
 
@@ -24,6 +25,7 @@ Route::get('/categories/{category}', [CategoryController::class, 'show']);
 Route::get('/playlists', [PlaylistController::class, 'index']);
 Route::post('/playlists', [PlaylistController::class, 'create']);
 Route::get('/playlists/{playlist}', [PlaylistController::class, 'show']);
+Route::get('/playlists/category/{category}', [PlaylistController::class, 'getByCategory']);
 
 
 
@@ -32,3 +34,6 @@ Route::get('/courses/{id}', [CourseController::class, 'show']);
 Route::post('/courses', [CourseController::class, 'store']);
 Route::put('/courses/{id}', [CourseController::class, 'update']);
 Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
+
+
+Route::get('/search', [SearchController::class, 'search']);

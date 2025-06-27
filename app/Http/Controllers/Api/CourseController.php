@@ -17,16 +17,22 @@ class CourseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $courses = Course::with('playlist')->get();
+        // Get limit and offset from query parameters, or use default values
+        $limit = $request->query('limit', 10);   // Default: 10 items
+        $offset = $request->query('offset', 0);  // Default: start from 0
+
+        $courses = Course::with('playlist')
+            ->skip($offset)
+            ->take($limit)
+            ->get();
 
         return response()->json([
             'status' => true,
-            'data' => $courses
+            'data' => $courses,
         ]);
     }
-
     /**
      * Store a newly created resource in storage.
      */
