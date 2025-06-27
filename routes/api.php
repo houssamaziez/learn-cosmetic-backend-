@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\CategoryController\CategoryController;
+use App\Http\Controllers\Api\PlaylistController;
+use App\Http\Controllers\Api\CourseController;
 
 
 
@@ -13,6 +15,20 @@ Route::post('/upload-image', [UserController::class, 'uploadImage']);
 Route::post('/upload-video', [UserController::class, 'uploadVideo']);
 
 
-// Route::get('/categories', [CategoryController::class, 'index']);
-// Route::get('/categories/{id}', [CategoryController::class, 'show']);
+Route::get('/categories', [CategoryController::class, 'index']);
 Route::post('/categories', [CategoryController::class, 'create']);
+Route::get('/categories/{category}', [CategoryController::class, 'show']);
+
+
+
+Route::get('/playlists', [PlaylistController::class, 'index']);
+Route::post('/playlists', [PlaylistController::class, 'create']);
+Route::get('/playlists/{playlist}', [PlaylistController::class, 'show']);
+
+
+
+Route::get('/courses', [CourseController::class, 'index']);
+Route::get('/courses/{id}', [CourseController::class, 'show']);
+Route::post('/courses', [CourseController::class, 'store']);
+Route::put('/courses/{id}', [CourseController::class, 'update']);
+Route::delete('/courses/{id}', [CourseController::class, 'destroy']);

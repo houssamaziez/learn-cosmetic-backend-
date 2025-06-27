@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Playlist;
 
 class Category extends Model
 {
@@ -15,4 +16,8 @@ class Category extends Model
 
     // Enable timestamps if your table has 'created_at' and 'updated_at' columns
     public $timestamps = true;
+    public function playlists()
+    {
+        return $this->hasMany(Playlist::class);
+    }
 }
