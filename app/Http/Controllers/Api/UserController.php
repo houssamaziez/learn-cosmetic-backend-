@@ -48,7 +48,6 @@ class UserController extends Controller
                 'message' => 'User registered successfully.',
                 'data'    => $user,
             ], 201);
-
         } catch (Exception $e) {
             Log::error('User registration error: ' . $e->getMessage());
 
@@ -61,67 +60,79 @@ class UserController extends Controller
     }
 
 
-    public function login(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
-            if (Auth::attempt($credentials)) {
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-            $token = $user->createToken('auth_token')->plainTextToken;
 
+    public function login(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email'    => 'required|email',
+            'password' => 'required|string|min:6',
+        ]);
+
+        if ($validator->fails()) {
             return response()->json([
-                'status' => true,
-                'message' => 'Login successful',
-                'token' => $token,
-            ]);
+                'status'  => false,
+                'message' => 'Validation failed.',
+                'errors'  => $validator->errors(),
+            ], 422);
         }
 
-        return response()->json([
-            'status' => false,
-            'message' => 'Invalid credentials',
-        ], 401);
-    }
+        $credentials = $request->only('email', 'password');
 
-}
+        if (!Auth::attempt($credentials)) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Invalid email or password.',
+            ], 401);
+        }
 
-
-public function getMe(Request $request)
-{
-    return response()->json([
-        'status' => true,
-        'user' => $request->user(),
-    ]);
-}
-
-
-public function uploadImage(Request $request): JsonResponse
-{
-    $validated = $request->validate([
-        'image' => 'required|image|max:2048', // Max 2MB
-    ]);
-
-    try {
-        $image = $request->file('image');
-
-        // Use a helper to upload the image to the 'users' folder
-        $path = ImageHelper::upload($image, 'users');
+        $user  = Auth::user();
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'status'  => true,
-            'message' => 'Image uploaded successfully.',
-            'path'    => $path,
-        ], 201);
-
-    } catch (\Throwable $e) {
-        Log::error('Image upload failed', ['error' => $e->getMessage()]);
-
-        return response()->json([
-            'status'  => false,
-            'message' => 'Image upload failed.',
-            'error'   => 'Internal Server Error',
-        ], 500);
+            'message' => 'Login successful.',
+            'token'   => $token,
+            'user'    => $user,
+        ], 200);
     }
-}
+
+
+    public function getMe(Request $request)
+    {
+        return response()->json([
+            'status' => true,
+            'user' => $request->user(),
+        ]);
+    }
+
+
+    public function uploadImage(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'image' => 'required|image|max:2048', // Max 2MB
+        ]);
+
+        try {
+            $image = $request->file('image');
+
+            // Use a helper to upload the image to the 'users' folder
+            $path = ImageHelper::upload($image, 'users');
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Image uploaded successfully.',
+                'path'    => $path,
+            ], 201);
+        } catch (\Throwable $e) {
+            Log::error('Image upload failed', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'status'  => false,
+                'message' => 'Image upload failed.',
+                'error'   => 'Internal Server Error',
+            ], 500);
+        }
+    }
     public function uploadVideo(Request $request): JsonResponse
     {
         $request->validate([

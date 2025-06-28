@@ -12,6 +12,8 @@ use FFMpeg\FFMpeg as PHPFFMpeg;
 use Illuminate\Support\Facades\Storage;
 use FFMpeg\FFProbe;
 
+use App\Models\Playlist;
+
 class CourseController extends Controller
 {
     /**
@@ -33,9 +35,41 @@ class CourseController extends Controller
             'data' => $courses,
         ]);
     }
+
+
+    public function getAllCoursesByPlaylist(int $playlistId): JsonResponse
+    {
+        // Check if the playlist exists
+        if (!Playlist::where('id', $playlistId)->exists()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Playlist not found.',
+            ], 404);
+        }
+
+        try {
+            $courses = Course::with('playlist')
+                ->where('playlist_id', $playlistId)
+                ->get();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Courses retrieved successfully.',
+                'data' => $courses,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'An error occurred while retrieving courses.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      */
+
 
     public function store(Request $request): JsonResponse
     {

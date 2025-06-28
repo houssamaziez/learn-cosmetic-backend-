@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController\CategoryController;
 use App\Http\Controllers\Api\PlaylistController;
 use App\Http\Controllers\Api\CourseController;
 use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\Api\PromotionController;
 
 
 
@@ -35,5 +36,12 @@ Route::post('/courses', [CourseController::class, 'store']);
 Route::put('/courses/{id}', [CourseController::class, 'update']);
 Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
 
+Route::get('/courses/playlist/{playlistId}', [CourseController::class, 'getAllCoursesByPlaylist']);
+
 
 Route::get('/search', [SearchController::class, 'search']);
+
+
+
+Route::get('/promotions', [PromotionController::class, 'index']);
+Route::post('/promotions', [PromotionController::class, 'store']);
