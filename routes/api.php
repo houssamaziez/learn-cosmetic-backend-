@@ -30,13 +30,13 @@ Route::get('/playlists/category/{category}', [PlaylistController::class, 'getByC
 
 
 
-Route::get('/courses', [CourseController::class, 'index']);
-Route::get('/courses/{id}', [CourseController::class, 'show']);
-Route::post('/courses', [CourseController::class, 'store']);
-Route::put('/courses/{id}', [CourseController::class, 'update']);
-Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
+Route::get('/episode', [CourseController::class, 'index']);
+Route::get('/episode/{id}', [CourseController::class, 'show']);
+Route::post('/episode', [CourseController::class, 'store']);
+Route::put('/episode/{id}', [CourseController::class, 'update']);
+Route::delete('/episode/{id}', [CourseController::class, 'destroy']);
 
-Route::get('/courses/playlist/{playlistId}', [CourseController::class, 'getAllCoursesByPlaylist']);
+Route::get('/episode/playlist/{playlistId}', [CourseController::class, 'getAllCoursesByPlaylist']);
 
 
 Route::get('/search', [SearchController::class, 'search']);

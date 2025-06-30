@@ -11,6 +11,7 @@ use FFMpeg;
 use FFMpeg\FFMpeg as PHPFFMpeg;
 use Illuminate\Support\Facades\Storage;
 use FFMpeg\FFProbe;
+use Illuminate\Support\Facades\Log;
 
 use App\Models\Playlist;
 
@@ -71,14 +72,16 @@ class CourseController extends Controller
      */
 
 
+
     public function store(Request $request): JsonResponse
     {
+        // Validate input
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'playlist_id' => 'required|exists:playlists,id',
             'image' => 'required|image|mimes:jpeg,png,jpg,svg|max:2048',
-            'video' => 'required|mimetypes:video/mp4,video/x-msvideo,video/quicktime|max:51200',
+            'video' => 'required|mimetypes:video/mp4,video/x-msvideo,video/quicktime|max:1048576', // 1GB max
         ]);
 
         if ($validator->fails()) {
@@ -90,30 +93,57 @@ class CourseController extends Controller
         }
 
         try {
-            // Save image
-            $imageName = uniqid() . '.' . $request->file('image')->getClientOriginalExtension();
-            $imagePath = $request->file('image')->storeAs('courses/images', $imageName, 'public');
+            // Ensure video file exists
+            $videoFile = $request->file('video');
+            $videoName = uniqid('vid_') . '.' . $videoFile->getClientOriginalExtension();
+            $videoPath = $videoFile->storeAs('courses/videos', $videoName, 'public');
 
-            // Save video
-            $videoName = uniqid() . '.' . $request->file('video')->getClientOriginalExtension();
-            $videoPath = $request->file('video')->storeAs('courses/videos', $videoName, 'public');
+            // Full path for checking
+            $fullVideoPath = storage_path("app/public/{$videoPath}");
 
-            // Get video duration using ffprobe
-            $duration = null;
-            try {
-                $ffprobe = FFProbe::create();
-                $fullVideoPath = storage_path("app/public/{$videoPath}");
-                $duration = $ffprobe->format($fullVideoPath)->get('duration');
-            } catch (\Exception $e) {
-                $duration = null; // fallback if ffprobe fails
+            if (!file_exists($fullVideoPath)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Video file failed to upload or was not saved.',
+                ], 500);
             }
 
+            // Ensure image file exists
+            if (!$request->hasFile('image') || !$request->file('image')->isValid()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Invalid or missing image file.',
+                ], 400);
+            }
+
+            // Store image
+            $imageFile = $request->file('image');
+            $imageName = uniqid('img_') . '.' . $imageFile->getClientOriginalExtension();
+            $imagePath = $imageFile->storeAs('courses/images', $imageName, 'public');
+
+            // Store video
+            $videoFile = $request->file('video');
+            $videoName = uniqid('vid_') . '.' . $videoFile->getClientOriginalExtension();
+            $videoPath = $videoFile->storeAs('courses/videos', $videoName, 'public');
+
+            // Get full path for ffprobe
+            $fullVideoPath = storage_path("app/public/{$videoPath}");
+            $duration = null;
+
+            try {
+                $ffprobe = FFProbe::create();
+                $duration = $ffprobe->format($fullVideoPath)->get('duration'); // in seconds
+            } catch (\Exception $e) {
+                Log::error('FFProbe failed to read video duration: ' . $e->getMessage());
+            }
+
+            // Create Course
             $course = Course::create([
                 'title'          => $request->title,
                 'description'    => $request->description,
                 'playlist_id'    => $request->playlist_id,
-                'image_path'     => "storage/{$imagePath}",
-                'video_path'     => "storage/{$videoPath}",
+                'image_path'     => "uploads/{$imagePath}",
+                'video_path'     => "uploads/{$videoPath}",
                 'video_duration' => $duration,
                 'is_watched'     => false,
             ]);
@@ -124,9 +154,11 @@ class CourseController extends Controller
                 'data'    => $course,
             ], 201);
         } catch (\Exception $e) {
+            Log::error('Course creation failed: ' . $e->getMessage());
+
             return response()->json([
                 'status'  => false,
-                'message' => 'An error occurred.',
+                'message' => 'An error occurred while uploading the course.',
                 'error'   => $e->getMessage(),
             ], 500);
         }

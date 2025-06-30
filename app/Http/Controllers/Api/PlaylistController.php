@@ -82,7 +82,7 @@ class PlaylistController extends Controller
             'category_id' => 'required|exists:categories,id',
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
+            'image'       => 'required|image|mimes:jpg,jpeg,png,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
