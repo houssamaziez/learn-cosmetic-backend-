@@ -16,13 +16,14 @@ class PlaylistController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $playlists = Playlist::with('category')->latest()->get()->map(function ($playlist) {
+            $playlists = Playlist::with(['category', 'courses'])->latest()->get()->map(function ($playlist) {
                 return [
-                    'id'          => $playlist->id,
-                    'title'       => $playlist->title,
-                    'description' => $playlist->description,
-                    'image_url'   => $playlist->image ? asset($playlist->image) : null,
-                    'category'    => [
+                    'id'           => $playlist->id,
+                    'title'        => $playlist->title,
+                    'description'  => $playlist->description,
+                    'image'        => $playlist->image ? asset($playlist->image) : null,
+                    'courses_count' => $playlist->courses->count(),
+                    'category'     => [
                         'id'   => $playlist->category->id ?? null,
                         'name' => $playlist->category->name ?? null,
                     ],
@@ -30,9 +31,9 @@ class PlaylistController extends Controller
             });
 
             return response()->json([
-                'status'   => true,
-                'message'  => 'Playlists retrieved successfully.',
-                'data'     => $playlists,
+                'status'  => true,
+                'message' => 'Playlists retrieved successfully.',
+                'data'    => $playlists,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -47,7 +48,6 @@ class PlaylistController extends Controller
 
     public function getByCategory(int $categoryId): JsonResponse
     {
-        // Check if the category exists
         if (!Category::where('id', $categoryId)->exists()) {
             return response()->json([
                 'status' => false,
@@ -56,23 +56,38 @@ class PlaylistController extends Controller
         }
 
         try {
-            $playlists = Playlist::with('category')
+            $playlists = Playlist::with(['category', 'courses'])
                 ->where('category_id', $categoryId)
-                ->get();
+                ->latest()
+                ->get()
+                ->map(function ($playlist) {
+                    return [
+                        'id'            => $playlist->id,
+                        'title'         => $playlist->title,
+                        'description'   => $playlist->description,
+                        'image'         => $playlist->image ? asset($playlist->image) : null,
+                        'courses_count' => $playlist->courses->count(),
+                        'category'      => [
+                            'id'   => $playlist->category->id ?? null,
+                            'name' => $playlist->category->name ?? null,
+                        ],
+                    ];
+                });
 
             return response()->json([
-                'status' => true,
+                'status'  => true,
                 'message' => 'Playlists retrieved successfully.',
-                'data' => $playlists,
+                'data'    => $playlists,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'status' => false,
+                'status'  => false,
                 'message' => 'An error occurred while retrieving playlists.',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
+
 
 
 
