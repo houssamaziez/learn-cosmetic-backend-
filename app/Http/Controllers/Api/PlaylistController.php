@@ -17,13 +17,22 @@ class PlaylistController extends Controller
     {
         try {
             $playlists = Playlist::with(['category', 'courses'])->latest()->get()->map(function ($playlist) {
+                $totalSeconds = (int) $playlist->courses->sum('video_duration');
+
+                $hours = floor($totalSeconds / 3600);
+                $minutes = floor(($totalSeconds % 3600) / 60);
+                $seconds = $totalSeconds % 60;
+
+                $formattedDuration = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+
                 return [
-                    'id'           => $playlist->id,
-                    'title'        => $playlist->title,
-                    'description'  => $playlist->description,
-                    'image'        => $playlist->image ? asset($playlist->image) : null,
-                    'courses_count' => $playlist->courses->count(),
-                    'category'     => [
+                    'id'             => $playlist->id,
+                    'title'          => $playlist->title,
+                    'description'    => $playlist->description,
+                    'image'          => $playlist->image ? asset($playlist->image) : null,
+                    'courses_count'  => $playlist->courses->count(),
+                    'total_duration' => $formattedDuration,
+                    'category'       => [
                         'id'   => $playlist->category->id ?? null,
                         'name' => $playlist->category->name ?? null,
                     ],
@@ -61,13 +70,23 @@ class PlaylistController extends Controller
                 ->latest()
                 ->get()
                 ->map(function ($playlist) {
+                    $totalSeconds = (int) $playlist->courses->sum('video_duration');
+
+                    // تحويل الثواني إلى صيغة HH:MM:SS
+                    $hours = floor($totalSeconds / 3600);
+                    $minutes = floor(($totalSeconds % 3600) / 60);
+                    $seconds = $totalSeconds % 60;
+
+                    $formattedDuration = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+
                     return [
-                        'id'            => $playlist->id,
-                        'title'         => $playlist->title,
-                        'description'   => $playlist->description,
-                        'image'         => $playlist->image ? asset($playlist->image) : null,
-                        'courses_count' => $playlist->courses->count(),
-                        'category'      => [
+                        'id'              => $playlist->id,
+                        'title'           => $playlist->title,
+                        'description'     => $playlist->description,
+                        'image'           => $playlist->image ? asset($playlist->image) : null,
+                        'courses_count'   => $playlist->courses->count(),
+                        'total_duration'  => $formattedDuration, // صيغة الوقت النهائية
+                        'category'        => [
                             'id'   => $playlist->category->id ?? null,
                             'name' => $playlist->category->name ?? null,
                         ],
