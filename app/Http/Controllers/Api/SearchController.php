@@ -22,10 +22,38 @@ class SearchController extends Controller
             ], 400);
         }
 
-        $categories = Category::where('name', 'like', "%{$keyword}%")->get();
-        $playlists  = Playlist::where('title', 'like', "%{$keyword}%")->get();
-        $courses    = Course::where('title', 'like', "%{$keyword}%")
+        $categories = Category::where('name', 'like', "%{$keyword}%")
+            ->take(4)
+            ->get();
+
+        $playlists = Playlist::with(['category', 'courses'])
+            ->where('title', 'like', "%{$keyword}%")
+            ->take(3)
+            ->get()
+            ->map(function ($playlist) {
+                $totalSeconds = (int) $playlist->courses->sum('video_duration');
+                $hours = floor($totalSeconds / 3600);
+                $minutes = floor(($totalSeconds % 3600) / 60);
+                $seconds = $totalSeconds % 60;
+
+                return [
+                    'id'             => $playlist->id,
+                    'title'          => $playlist->title,
+                    'description'    => $playlist->description,
+                    'image'          => $playlist->image ? asset($playlist->image) : null,
+                    'courses_count'  => $playlist->courses->count(),
+                    'total_duration' => sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds),
+                    'category'       => [
+                        'id'   => $playlist->category->id ?? null,
+                        'name' => $playlist->category->name ?? null,
+                    ],
+                ];
+            });
+
+        $courses = Course::with('playlist')
+            ->where('title', 'like', "%{$keyword}%")
             ->orWhere('description', 'like', "%{$keyword}%")
+            ->take(3)
             ->get();
 
         return response()->json([

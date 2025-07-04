@@ -23,6 +23,7 @@ class PromotionController extends Controller
             'start_date'  => 'required|date',
             'end_date'    => 'required|date|after_or_equal:start_date',
             'is_active'   => 'boolean',
+            'playlist_id' => 'required|exists:playlists,id', // ✅ إضافة التحقق من وجود القائمة
         ]);
 
         if ($validator->fails()) {
@@ -47,6 +48,7 @@ class PromotionController extends Controller
             'start_date'  => $request->start_date,
             'end_date'    => $request->end_date,
             'is_active'   => $request->is_active ?? true,
+            'playlist_id' => $request->playlist_id,
         ]);
 
         return response()->json([
@@ -55,6 +57,7 @@ class PromotionController extends Controller
             'data'    => $promotion,
         ], 201);
     }
+
 
     public function index(Request $request): JsonResponse
     {
