@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('promotions', function (Blueprint $table) {
-            $table->dropColumn('playlist_id');
+            if (Schema::hasColumn('promotions', 'playlist_id')) {
+                $table->dropColumn('playlist_id');
+            }
         });
     }
 

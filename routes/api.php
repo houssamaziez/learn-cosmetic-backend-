@@ -7,6 +7,9 @@ use App\Http\Controllers\Api\PlaylistController;
 use App\Http\Controllers\Api\CourseController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\PromotionController;
+use App\Http\Controllers\Api\CourseLikeController;
+use App\Http\Controllers\Api\CourseCommentController;
+
 
 
 
@@ -35,6 +38,10 @@ Route::get('/episode/{id}', [CourseController::class, 'show']);
 Route::post('/episode', [CourseController::class, 'store']);
 Route::put('/episode/{id}', [CourseController::class, 'update']);
 Route::delete('/episode/{id}', [CourseController::class, 'destroy']);
+Route::post('/episode/comment/{courseId}', [CourseCommentController::class, 'store']);
+Route::post('/episode/like', [CourseLikeController::class, 'store']);
+
+
 
 Route::get('/episode/playlist/{playlistId}', [CourseController::class, 'getAllCoursesByPlaylist']);
 

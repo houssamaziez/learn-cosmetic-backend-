@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Playlist;
+use App\Models\Like;
+use App\Models\Comment;
 
 class Course extends Model
 {
@@ -20,5 +22,14 @@ class Course extends Model
     public function playlist()
     {
         return $this->belongsTo(Playlist::class);
+    }
+    public function likes()
+    {
+        return $this->hasMany(Like::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 }
