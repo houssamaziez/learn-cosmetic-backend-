@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\PromotionController;
 use App\Http\Controllers\Api\CourseLikeController;
 use App\Http\Controllers\Api\CourseCommentController;
+use App\Http\Controllers\Api\BookController;
 
 
 
@@ -38,7 +39,10 @@ Route::get('/episode/{id}', [CourseController::class, 'show']);
 Route::post('/episode', [CourseController::class, 'store']);
 Route::put('/episode/{id}', [CourseController::class, 'update']);
 Route::delete('/episode/{id}', [CourseController::class, 'destroy']);
-Route::post('/episode/comment/{courseId}', [CourseCommentController::class, 'store']);
+
+Route::post('/episode/comment', [CourseCommentController::class, 'store']);
+Route::get('episode/{id}/comments', [CourseCommentController::class, 'getCommentsByCourse']);
+
 Route::post('/episode/like', [CourseLikeController::class, 'store']);
 
 
@@ -52,3 +56,9 @@ Route::get('/search', [SearchController::class, 'search']);
 
 Route::get('/promotions', [PromotionController::class, 'index']);
 Route::post('/promotions', [PromotionController::class, 'store']);
+
+
+
+
+Route::get('books', [BookController::class, 'index']);
+Route::post('books', [BookController::class, 'store']);

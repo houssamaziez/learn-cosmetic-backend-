@@ -26,20 +26,45 @@ class CourseController extends Controller
         $offset = $request->query('offset', 0);  // Default: start from 0
 
         $courses = Course::with('playlist')
+            ->withCount(['likes', 'comments']) // <-- احصل على عدد اللايكات والتعليقات
             ->skip($offset)
             ->take($limit)
-            ->get();
+            ->get()
+            ->map(function ($course) {
+                return  [
+                    'id'             => $course->id,
+                    'title'          => $course->title,
+                    'description'    => $course->description,
+                    'image_path'     => $course->image_path ? asset($course->image_path) : null,
+                    'video_path'     => $course->video_path ? asset($course->video_path) : null,
+                    'video_duration' => $course->video_duration,
+                    'is_watched'     => $course->is_watched,
+                    'likes_count'    => $course->likes_count,
+                    'comments_count' => $course->comments_count,
+                    'playlist_id'    => $course->playlist_id,
+                    'created_at'    => $course->created_at,
+                    'updated_at'     => $course->updated_at,
+                    'playlist'       => [
+                        'id'          => $course->playlist->id,
+                        'category_id' => $course->playlist->category_id,
+                        'title'       => $course->playlist->title,
+                        'image'       => $course->playlist->image,
+                        'description' => $course->playlist->description,
+                        'created_at'  => $course->playlist->created_at,
+                        'updated_at'  => $course->playlist->updated_at,
+                    ],
+                ];
+            });
 
         return response()->json([
             'status' => true,
-            'data' => $courses,
+            'data'   => $courses,
         ]);
     }
 
 
     public function getAllCoursesByPlaylist(int $playlistId): JsonResponse
     {
-        // Check if the playlist exists
         if (!Playlist::where('id', $playlistId)->exists()) {
             return response()->json([
                 'status' => false,
@@ -48,20 +73,53 @@ class CourseController extends Controller
         }
 
         try {
-            $courses = Course::with('playlist')
+            $courses = Course::with(['playlist'])
+                ->withCount(['likes', 'comments'])
                 ->where('playlist_id', $playlistId)
-                ->get();
+                ->latest()
+                ->get()
+                ->map(function ($course) {
+                    $seconds = (int) $course->video_duration;
+                    $hours = floor($seconds / 3600);
+                    $minutes = floor(($seconds % 3600) / 60);
+                    $remainingSeconds = $seconds % 60;
+                    $formattedDuration = sprintf('%02d:%02d:%02d', $hours, $minutes, $remainingSeconds);
+
+                    return [
+                        'id'             => $course->id,
+                        'title'          => $course->title,
+                        'description'    => $course->description,
+                        'image_path'     => $course->image_path ? asset($course->image_path) : null,
+                        'video_path'     => $course->video_path ? asset($course->video_path) : null,
+                        'video_duration' => $formattedDuration,
+                        'is_watched'     => $course->is_watched,
+                        'likes_count'    => $course->likes_count,
+                        'comments_count' => $course->comments_count,
+                        'playlist_id'    => $course->playlist_id,
+                        'created_at'    => $course->created_at,
+                        'updated_at'     => $course->updated_at,
+                        'playlist'       => [
+                            'id'          => $course->playlist->id,
+                            'category_id' => $course->playlist->category_id,
+                            'title'       => $course->playlist->title,
+                            'image'       => $course->playlist->image,
+                            'description' => $course->playlist->description,
+                            'created_at'  => $course->playlist->created_at,
+                            'updated_at'  => $course->playlist->updated_at,
+                        ],
+                    ];
+                });
 
             return response()->json([
-                'status' => true,
+                'status'  => true,
                 'message' => 'Courses retrieved successfully.',
-                'data' => $courses,
+                'data'    => $courses,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'status' => false,
+                'status'  => false,
                 'message' => 'An error occurred while retrieving courses.',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
@@ -77,7 +135,7 @@ class CourseController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'playlist_id' => 'required|exists:playlists,id',
-            'image' => 'required|image|mimes:jpeg,png,jpg,svg|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,svg|max:6048',
             'video' => 'required|mimetypes:video/mp4,video/x-msvideo,video/quicktime|max:51200',
         ]);
 
