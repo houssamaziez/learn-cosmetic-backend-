@@ -19,6 +19,7 @@ Route::post('/login', [UserController::class, 'login']);
 Route::middleware('auth:sanctum')->get('/me', [UserController::class, 'getMe']);
 Route::post('/upload-image', [UserController::class, 'uploadImage']);
 Route::post('/upload-video', [UserController::class, 'uploadVideo']);
+Route::middleware('auth:sanctum')->post('user/update', [UserController::class, 'update']);
 
 
 Route::get('/categories', [CategoryController::class, 'index']);

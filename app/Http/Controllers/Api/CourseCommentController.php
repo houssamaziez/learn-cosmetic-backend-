@@ -75,6 +75,7 @@ class CourseCommentController extends Controller
                 'user_id'   => $comment->user_id,
                 'user_name' => $comment->user->name ?? null,
                 'content'   => $comment->content,
+                'imageuser' =>  $comment->user->imageuser ?? null,
                 'created_at' => $comment->created_at->toDateTimeString(),
             ];
         });

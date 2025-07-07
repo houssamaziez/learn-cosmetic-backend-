@@ -153,4 +153,66 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+    public function update(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'name'        => 'sometimes|string|max:255',
+            'email'       => 'sometimes|email|max:255|unique:users,email,' . $user->id,
+            'password'    => 'sometimes|string|min:6|confirmed',
+            'phone'       => 'nullable|string|max:20',
+            'address'     => 'nullable|string|max:255',
+            'imageuser'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'role'        => 'nullable|string|max:100',
+            'active'      => 'nullable|boolean',
+            'ispayment'   => 'nullable|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Validation failed.',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $user->fill($request->only([
+                'name',
+                'email',
+                'phone',
+                'address',
+                'role',
+                'active',
+                'ispayment'
+            ]));
+
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->password);
+            }
+
+            if ($request->hasFile('imageuser')) {
+                $file = $request->file('imageuser');
+                $fileName = uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads/users'), $fileName);
+                $user->imageuser = 'uploads/users/' . $fileName;
+            }
+
+            $user->save();
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'User updated successfully.',
+                'data'    => $user,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Update failed.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
